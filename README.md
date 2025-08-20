@@ -1,5 +1,11 @@
 # QR PDKS - Personel Devam Kontrol Sistemi
 
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/ardaidic/qr-pdks)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.0-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-Cloud-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+
 Bulut tabanlı, Avrupa veri merkezlerinde çalışan, QR kodlu mesai ve mola takip sistemi. Sabit tablet kiosklarından giriş/çıkış; çalışan portalında yalnızca kişinin kendi verileri; yönetici panelinde tüm personel görünümü ve gecikme vurguları.
 
 ## 🚀 Özellikler
@@ -174,8 +180,30 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 ## 📞 İletişim
 
-- Proje Linki: [https://github.com/username/qr-pdks](https://github.com/username/qr-pdks)
-- Sorunlar: [Issues](https://github.com/username/qr-pdks/issues)
+- Proje Linki: [https://github.com/ardaidic/qr-pdks](https://github.com/ardaidic/qr-pdks)
+- Sorunlar: [Issues](https://github.com/ardaidic/qr-pdks/issues)
+
+## 🌐 GitHub Repository
+
+Bu proje GitHub'da barındırılmaktadır:
+
+- **Repository**: [https://github.com/ardaidic/qr-pdks](https://github.com/ardaidic/qr-pdks)
+- **Clone URL**: `git clone https://github.com/ardaidic/qr-pdks.git`
+- **SSH URL**: `git@github.com:ardaidic/qr-pdks.git`
+
+### GitHub'a Deploy Etme
+
+Projeyi GitHub'a deploy etmek için:
+
+```bash
+# Deploy script'ini çalıştırın
+./deploy.sh
+
+# Veya manuel olarak:
+git add .
+git commit -m "feat: QR PDKS MVP"
+git push -u origin main
+```
 
 ## 🙏 Teşekkürler
 
