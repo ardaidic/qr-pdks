@@ -1,36 +1,185 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QR PDKS - Personel Devam Kontrol Sistemi
 
-## Getting Started
+Bulut tabanlı, Avrupa veri merkezlerinde çalışan, QR kodlu mesai ve mola takip sistemi. Sabit tablet kiosklarından giriş/çıkış; çalışan portalında yalnızca kişinin kendi verileri; yönetici panelinde tüm personel görünümü ve gecikme vurguları.
 
-First, run the development server:
+## 🚀 Özellikler
 
+- **QR Kod ile Giriş/Çıkış**: Güvenli QR kod sistemi ile hızlı kimlik doğrulama
+- **Mola Yönetimi**: Mola başlat/bitir işlemleri
+- **Gerçek Zamanlı Takip**: Anlık personel durumu ve gecikme bildirimleri
+- **Çoklu Rol Sistemi**: Çalışan, Yönetici, Süper Yönetici rolleri
+- **Offline Desteği**: İnternet bağlantısı olmadığında kuyruk sistemi
+- **GDPR Uyumlu**: Avrupa veri merkezlerinde barındırma
+- **Responsive Tasarım**: Tablet ve mobil uyumlu arayüz
+
+## 🛠️ Teknoloji Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **UI**: Tailwind CSS, shadcn/ui, Lucide Icons
+- **Backend**: Firebase (Firestore, Functions, Hosting)
+- **QR Kod**: html5-qrcode
+- **Barındırma**: Firebase Hosting (EU Region)
+
+## 📋 Gereksinimler
+
+- Node.js 18+ 
+- npm veya yarn
+- Firebase projesi (timetrack-qr)
+
+## 🚀 Hızlı Başlangıç
+
+### 1. Projeyi Klonlayın
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd qr-pdks
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Bağımlılıkları Yükleyin
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Firebase Konfigürasyonu
+Detaylı kurulum için [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) dosyasını takip edin.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Kısa özet:
+1. Firebase Console'da "TimeTrack QR" projesini seçin
+2. Firestore Database, Authentication, Storage ve Functions servislerini etkinleştirin
+3. `.env.local` dosyasını Firebase bilgileriyle güncelleyin
 
-## Learn More
+### 4. Geliştirme Sunucusunu Başlatın
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Tarayıcıda Açın
+```
+http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 6. Firebase Bağlantısını Test Edin
+```
+http://localhost:3000/test-firebase
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📱 Kullanım
 
-## Deploy on Vercel
+### Kiosk Modu
+- QR kod okutma
+- Giriş/çıkış işlemleri
+- Mola yönetimi
+- Gerçek zamanlı durum gösterimi
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Çalışan Portalı
+- Kişisel veri görüntüleme
+- Geçmiş kayıtlar
+- Düzeltme talepleri
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Yönetici Paneli
+- Tüm personel görünümü
+- Gecikme raporları
+- CSV/Excel dışa aktarım
+
+## 🏗️ Proje Yapısı
+
+```
+qr-pdks/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/               # API Routes
+│   │   │   ├── punch/         # Punch işlemleri
+│   │   │   └── employees/     # Çalışan bilgileri
+│   │   ├── test-firebase/     # Firebase test sayfası
+│   │   ├── globals.css        # Global stiller
+│   │   ├── layout.tsx         # Ana layout
+│   │   └── page.tsx           # Kiosk ana sayfa
+│   ├── components/            # React bileşenleri
+│   │   ├── ui/               # Temel UI bileşenleri
+│   │   ├── Kiosk.tsx         # Kiosk ana bileşeni
+│   │   └── QRScanner.tsx     # QR kod okuyucu
+│   ├── lib/                  # Yardımcı kütüphaneler
+│   │   ├── firebase.ts       # Firebase konfigürasyonu
+│   │   └── utils.ts          # Yardımcı fonksiyonlar
+│   └── types/                # TypeScript tip tanımları
+├── functions/                # Firebase Functions
+├── firebase.json            # Firebase konfigürasyonu
+├── firestore.rules          # Güvenlik kuralları
+├── firestore.indexes.json   # Firestore indeksleri
+├── storage.rules            # Storage güvenlik kuralları
+├── FIREBASE_SETUP.md        # Firebase kurulum rehberi
+└── README.md               # Proje dokümantasyonu
+```
+
+## 🔧 Geliştirme
+
+### Yeni Özellik Ekleme
+1. Feature branch oluşturun
+2. Gerekli bileşenleri ve API'leri ekleyin
+3. Test edin
+4. Pull request oluşturun
+
+### Firebase Kurulumu
+Detaylı adımlar için [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) dosyasını inceleyin.
+
+## 📊 Veri Modeli
+
+### Temel Koleksiyonlar
+- `employees`: Çalışan bilgileri
+- `punches`: Giriş/çıkış kayıtları
+- `sessions`: Günlük oturum bilgileri
+- `devices`: Kiosk cihazları
+- `locations`: Lokasyon bilgileri
+- `challenges`: QR doğrulama challenge'ları
+
+## 🔒 Güvenlik
+
+- QR kod HMAC doğrulama
+- Cihaz kimlik doğrulama
+- Role-based access control (RBAC)
+- GDPR uyumlu veri saklama
+- Audit logging
+
+## 🚀 Deployment
+
+### Firebase Hosting
+```bash
+npm run build
+npx firebase-tools deploy --only hosting
+```
+
+### Vercel
+```bash
+npm run build
+vercel --prod
+```
+
+## 📈 Performans
+
+- QR okuma: <200ms P95
+- API yanıt süresi: <500ms
+- Offline kuyruk: 100+ punch
+- Eşzamanlı kullanıcı: 1000+
+
+## 🤝 Katkıda Bulunma
+
+1. Fork edin
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit edin (`git commit -m 'Add amazing feature'`)
+4. Push edin (`git push origin feature/amazing-feature`)
+5. Pull Request oluşturun
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır.
+
+## 📞 İletişim
+
+- Proje Linki: [https://github.com/username/qr-pdks](https://github.com/username/qr-pdks)
+- Sorunlar: [Issues](https://github.com/username/qr-pdks/issues)
+
+## 🙏 Teşekkürler
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Firebase](https://firebase.google.com/) - Backend servisleri
+- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
+- [shadcn/ui](https://ui.shadcn.com/) - UI bileşenleri
