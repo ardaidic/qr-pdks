@@ -13,7 +13,8 @@ import {
   QrCode,
   Smartphone,
   Building2,
-  Calendar
+  Calendar,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -193,6 +194,15 @@ const Kiosk: React.FC<KioskProps> = ({
           <div className="flex items-center justify-center gap-3 mb-4">
             <Building2 className="w-8 h-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-800">QR PDKS</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.href = '/dashboard'}
+              className="ml-4"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
           </div>
           <p className="text-gray-600 text-lg">Personel Devam Kontrol Sistemi</p>
           
