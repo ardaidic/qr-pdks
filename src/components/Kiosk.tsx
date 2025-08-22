@@ -14,7 +14,9 @@ import {
   Smartphone,
   Building2,
   Calendar,
-  Users
+  Users,
+  Hash,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +39,8 @@ const Kiosk: React.FC<KioskProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastPunch, setLastPunch] = useState<Punch | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualCode, setManualCode] = useState('');
   const { toast } = useToast();
 
   // Gerçek zamanlı saat güncellemesi
@@ -182,6 +186,75 @@ const Kiosk: React.FC<KioskProps> = ({
     }
   };
 
+  const handleManualSubmit = async () => {
+    if (!manualCode.trim()) {
+      toast({
+        title: "Hata",
+        description: "Lütfen personel kodunu girin",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      const response = await apiService.getEmployeeByCode(manualCode.trim());
+      
+      if (response.success && response.data) {
+        const employee = response.data;
+        const punchType = await determinePunchType(employee.id);
+        
+        const punch = await apiService.createPunch({
+          employee_id: employee.id,
+          employee_code: employee.code,
+          employee_name: employee.name,
+          type: punchType,
+          timestamp: new Date().toISOString(),
+          location: location,
+          device_id: deviceId
+        });
+
+        if (punch.success) {
+          setCurrentEmployee(employee);
+          setLastPunch(punch.data!);
+          
+          toast({
+            title: "Başarılı",
+            description: getSuccessMessage(punchType, employee.name),
+            variant: "success",
+          });
+        }
+      } else {
+        toast({
+          title: "Hata",
+          description: "Personel bulunamadı",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "Hata",
+        description: "İşlem sırasında hata oluştu",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+      setManualCode('');
+      setShowManualInput(false);
+    }
+  };
+
+  const handleKeyPress = (key: string) => {
+    if (key === 'backspace') {
+      setManualCode(prev => prev.slice(0, -1));
+    } else if (key === 'enter') {
+      handleManualSubmit();
+    } else if (manualCode.length < 10) {
+      setManualCode(prev => prev + key);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
       <div className="max-w-4xl mx-auto">
@@ -290,13 +363,109 @@ const Kiosk: React.FC<KioskProps> = ({
             </Card>
           </motion.div>
 
-          {/* Sağ Panel - Son İşlemler */}
+          {/* Sağ Panel - Manuel Giriş ve Son İşlemler */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
             className="space-y-6"
           >
+            {/* Manuel Giriş */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Hash className="w-5 h-5 text-green-600" />
+                  Manuel Giriş
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!showManualInput ? (
+                  <div className="text-center space-y-4">
+                    <div className="bg-green-50 rounded-lg p-6 border-2 border-dashed border-green-200">
+                      <Hash className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-4">
+                        Personel kodunuzu girin
+                      </p>
+                      <Button 
+                        onClick={() => setShowManualInput(true)}
+                        variant="success"
+                        size="xl"
+                        className="w-full"
+                      >
+                        <Hash className="w-5 h-5 mr-2" />
+                        Manuel Giriş
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Kod Girişi */}
+                    <div className="text-center">
+                      <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                        <input
+                          type="text"
+                          value={manualCode}
+                          readOnly
+                          className="w-full text-center text-2xl font-mono bg-transparent border-none outline-none"
+                          placeholder="Kod girin..."
+                        />
+                      </div>
+                      
+                      {/* Sayısal Tuş Takımı */}
+                      <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                          <Button
+                            key={num}
+                            variant="outline"
+                            size="lg"
+                            onClick={() => handleKeyPress(num.toString())}
+                            className="h-12 text-lg font-mono"
+                          >
+                            {num}
+                          </Button>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handleKeyPress('backspace')}
+                          className="h-12"
+                        >
+                          ←
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handleKeyPress('0')}
+                          className="h-12 text-lg font-mono"
+                        >
+                          0
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handleKeyPress('enter')}
+                          className="h-12 bg-green-600 text-white hover:bg-green-700"
+                        >
+                          ✓
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={() => {
+                        setShowManualInput(false);
+                        setManualCode('');
+                      }}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Geri Dön
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
             {/* Cihaz Bilgileri */}
             <Card>
               <CardHeader>

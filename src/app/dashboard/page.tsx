@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { apiService, type Employee, type Punch } from '@/lib/api';
 import AddEmployeeModal from '@/components/AddEmployeeModal';
+import EditEmployeeModal from '@/components/EditEmployeeModal';
 import QRGenerator from '@/components/QRGenerator';
 
 export default function Dashboard() {
@@ -31,7 +32,9 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const { toast } = useToast();
 
   // Verileri yükle
@@ -226,11 +229,15 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {filteredEmployees.map((employee) => (
-                      <div
-                        key={employee.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
+                                         {filteredEmployees.map((employee) => (
+                       <div
+                         key={employee.id}
+                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                         onClick={() => {
+                           setSelectedEmployee(employee);
+                           setShowEditModal(true);
+                         }}
+                       >
                         <Avatar className="w-10 h-10">
                           <AvatarImage src={employee.avatar} />
                           <AvatarFallback>
@@ -364,6 +371,14 @@ export default function Dashboard() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={loadData}
+      />
+
+      {/* Edit Employee Modal */}
+      <EditEmployeeModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={loadData}
+        employee={selectedEmployee}
       />
 
       {/* QR Generator Modal */}
