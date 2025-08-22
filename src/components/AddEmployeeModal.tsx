@@ -69,7 +69,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmpl
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Personel eklenirken hata oluştu",
@@ -82,7 +82,6 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmpl
 
   const generateAvatar = () => {
     const name = formData.name || 'User';
-    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
     const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
     const color = colors[Math.floor(Math.random() * colors.length)];
     

@@ -6,7 +6,6 @@ import {
   Users, 
   Clock, 
   TrendingUp, 
-  Plus, 
   Search, 
   Filter,
   Download,
@@ -14,23 +13,25 @@ import {
   Building2,
   UserPlus,
   BarChart3,
-  Settings
+  Settings,
+  QrCode
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { apiService, type Employee, type Punch, type Session } from '@/lib/api';
+import { apiService, type Employee, type Punch } from '@/lib/api';
 import AddEmployeeModal from '@/components/AddEmployeeModal';
+import QRGenerator from '@/components/QRGenerator';
 
 export default function Dashboard() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [punches, setPunches] = useState<Punch[]>([]);
-  const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const { toast } = useToast();
 
   // Verileri yükle
@@ -55,7 +56,7 @@ export default function Dashboard() {
         setPunches(punchesRes.data || []);
       }
 
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Veriler yüklenirken hata oluştu",
@@ -111,6 +112,10 @@ export default function Dashboard() {
               <Button variant="outline" onClick={loadData}>
                 <Clock className="w-4 h-4 mr-2" />
                 Yenile
+              </Button>
+              <Button variant="outline" onClick={() => setShowQRModal(true)}>
+                <QrCode className="w-4 h-4 mr-2" />
+                QR Oluştur
               </Button>
               <Button onClick={() => setShowAddModal(true)}>
                 <UserPlus className="w-4 h-4 mr-2" />
@@ -339,11 +344,11 @@ export default function Dashboard() {
           transition={{ delay: 0.4 }}
           className="mt-8 flex justify-center gap-4"
         >
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => window.location.href = '/reports'}>
             <BarChart3 className="w-4 h-4 mr-2" />
             Raporlar
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => window.location.href = '/settings'}>
             <Settings className="w-4 h-4 mr-2" />
             Ayarlar
           </Button>
@@ -359,6 +364,12 @@ export default function Dashboard() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={loadData}
+      />
+
+      {/* QR Generator Modal */}
+      <QRGenerator
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
       />
     </div>
   );
