@@ -55,18 +55,24 @@ export default function EditEmployeeModal({ isOpen, onClose, onSuccess, employee
     try {
       setLoading(true);
       
-      // API'ye güncelleme isteği gönder (gelecekte implement edilecek)
-      // const response = await apiService.updateEmployee(employee.id, formData);
+      const response = await apiService.updateEmployee(employee.id, formData);
       
-      // Şimdilik başarılı kabul edelim
-      toast({
-        title: "Başarılı",
-        description: "Personel başarıyla güncellendi",
-        variant: "success",
-      });
-      
-      onSuccess();
-      onClose();
+      if (response.success) {
+        toast({
+          title: "Başarılı",
+          description: "Personel başarıyla güncellendi",
+          variant: "success",
+        });
+        
+        onSuccess();
+        onClose();
+      } else {
+        toast({
+          title: "Hata",
+          description: response.error || "Personel güncellenirken hata oluştu",
+          variant: "destructive",
+        });
+      }
     } catch {
       toast({
         title: "Hata",

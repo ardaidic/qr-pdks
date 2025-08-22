@@ -1,5 +1,5 @@
 // Basit API servisi - Firebase yerine kullanılacak
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://lhiçocalhost:3001';
 
 export interface Employee {
   id: string;
@@ -82,7 +82,11 @@ class ApiService {
 
   // Employee endpoints
   async getEmployeeByCode(code: string): Promise<ApiResponse<Employee>> {
-    return this.request<Employee>(`/employees?code=${code}`);
+    const response = await this.request<Employee[]>(`/employees?code=${code}`);
+    if (response.success && response.data && Array.isArray(response.data) && response.data.length > 0) {
+      return { success: true, data: response.data[0] };
+    }
+    return { success: false, error: 'Employee not found' };
   }
 
   async getEmployees(): Promise<ApiResponse<Employee[]>> {
@@ -92,10 +96,24 @@ class ApiService {
   async createEmployee(employee: Omit<Employee, 'id' | 'created_at'>): Promise<ApiResponse<Employee>> {
     return this.request<Employee>('/employees', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         ...employee,
+        id: Date.now().toString(),
         created_at: new Date().toISOString(),
       }),
+    });
+  }
+
+  async updateEmployee(id: string, employee: Partial<Employee>): Promise<ApiResponse<Employee>> {
+    return this.request<Employee>(`/employees/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(employee),
     });
   }
 

@@ -112,15 +112,15 @@ export default function Dashboard() {
               <p className="text-gray-600 mt-2">Personel Devam Kontrol Sistemi Yönetim Paneli</p>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={loadData}>
+              <Button variant="outline" onClick={loadData} className="hover:bg-blue-50 hover:border-blue-300">
                 <Clock className="w-4 h-4 mr-2" />
                 Yenile
               </Button>
-              <Button variant="outline" onClick={() => setShowQRModal(true)}>
+              <Button variant="primary" onClick={() => setShowQRModal(true)} className="shadow-lg">
                 <QrCode className="w-4 h-4 mr-2" />
                 QR Oluştur
               </Button>
-              <Button onClick={() => setShowAddModal(true)}>
+              <Button variant="success" onClick={() => setShowAddModal(true)} className="shadow-lg">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Yeni Personel
               </Button>
@@ -232,7 +232,7 @@ export default function Dashboard() {
                                          {filteredEmployees.map((employee) => (
                        <div
                          key={employee.id}
-                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                         className="flex items-center gap-3 p-4 bg-white rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer border border-gray-200 hover:border-blue-300 hover:shadow-lg transform hover:scale-[1.02]"
                          onClick={() => {
                            setSelectedEmployee(employee);
                            setShowEditModal(true);

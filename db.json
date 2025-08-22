@@ -1,14 +1,12 @@
 {
   "employees": [
     {
-      "id": "1",
       "code": "EMP001",
-      "name": "Ahmet Yılmaz",
+      "name": "Ahmet Yılmaz (Güncellendi)",
       "department": "Yazılım Geliştirme",
       "position": "Senior Developer",
-      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
       "status": "active",
-      "created_at": "2024-01-15T08:00:00.000Z"
+      "id": "1"
     },
     {
       "id": "2",
@@ -58,6 +56,15 @@
       "position": "Test Pozisyon",
       "status": "active",
       "created_at": "2024-08-22T16:30:00.000Z"
+    },
+    {
+      "id": "4e90",
+      "code": "EMP007",
+      "name": "Test Kullanıcı",
+      "department": "Test",
+      "position": "Test",
+      "status": "active",
+      "created_at": "2024-08-22T20:00:00.000Z"
     }
   ],
   "punches": [

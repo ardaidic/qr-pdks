@@ -199,11 +199,16 @@ const Kiosk: React.FC<KioskProps> = ({
     try {
       setIsProcessing(true);
       
+      console.log('Aranan kod:', manualCode.trim());
       const response = await apiService.getEmployeeByCode(manualCode.trim());
+      console.log('API response:', response);
       
       if (response.success && response.data) {
         const employee = response.data;
+        console.log('Bulunan personel:', employee);
+        
         const punchType = await determinePunchType(employee.id);
+        console.log('Punch türü:', punchType);
         
         const punch = await apiService.createPunch({
           employee_id: employee.id,
@@ -215,6 +220,8 @@ const Kiosk: React.FC<KioskProps> = ({
           device_id: deviceId
         });
 
+        console.log('Punch response:', punch);
+
         if (punch.success) {
           setCurrentEmployee(employee);
           setLastPunch(punch.data!);
@@ -224,15 +231,22 @@ const Kiosk: React.FC<KioskProps> = ({
             description: getSuccessMessage(punchType, employee.name),
             variant: "success",
           });
+        } else {
+          toast({
+            title: "Hata",
+            description: punch.error || "Punch oluşturulamadı",
+            variant: "destructive",
+          });
         }
       } else {
         toast({
           title: "Hata",
-          description: "Personel bulunamadı",
+          description: response.error || "Personel bulunamadı",
           variant: "destructive",
         });
       }
-    } catch {
+    } catch (error) {
+      console.error('Manual submit error:', error);
       toast({
         title: "Hata",
         description: "İşlem sırasında hata oluştu",
@@ -318,9 +332,14 @@ const Kiosk: React.FC<KioskProps> = ({
               <CardContent className="space-y-4">
                 {!isScanning ? (
                   <div className="text-center space-y-4">
-                    <div className="bg-blue-50 rounded-lg p-8 border-2 border-dashed border-blue-200">
-                      <Smartphone className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-4">
+                    <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 rounded-xl p-8 border-2 border-dashed border-blue-300 shadow-lg">
+                      <div className="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <Smartphone className="w-10 h-10 text-blue-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2 text-center">
+                        QR Kod Tarama
+                      </h3>
+                      <p className="text-gray-600 mb-6 text-center">
                         QR kodunuzu tarayıcıya yaklaştırın
                       </p>
                       <Button 
@@ -351,12 +370,14 @@ const Kiosk: React.FC<KioskProps> = ({
                 {/* İşlem Durumu */}
                 {isProcessing && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center justify-center gap-2 text-blue-600"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200"
                   >
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>İşlem yapılıyor...</span>
+                    <div className="relative">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                    </div>
+                    <span className="text-blue-700 font-medium">İşlem yapılıyor...</span>
                   </motion.div>
                 )}
               </CardContent>
@@ -381,14 +402,19 @@ const Kiosk: React.FC<KioskProps> = ({
               <CardContent className="space-y-4">
                 {!showManualInput ? (
                   <div className="text-center space-y-4">
-                    <div className="bg-green-50 rounded-lg p-6 border-2 border-dashed border-green-200">
-                      <Hash className="w-12 h-12 text-green-400 mx-auto mb-3" />
-                      <p className="text-gray-600 mb-4">
+                    <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 rounded-xl p-6 border-2 border-dashed border-green-300 shadow-lg">
+                      <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <Hash className="w-8 h-8 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center">
+                        Manuel Giriş
+                      </h3>
+                      <p className="text-gray-600 mb-4 text-center">
                         Personel kodunuzu girin
                       </p>
                       <Button 
                         onClick={() => setShowManualInput(true)}
-                        variant="success"
+                        variant="primary"
                         size="xl"
                         className="w-full"
                       >
@@ -401,25 +427,28 @@ const Kiosk: React.FC<KioskProps> = ({
                   <div className="space-y-4">
                     {/* Kod Girişi */}
                     <div className="text-center">
-                      <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6 border-2 border-blue-200 shadow-lg">
                         <input
                           type="text"
                           value={manualCode}
                           readOnly
-                          className="w-full text-center text-2xl font-mono bg-transparent border-none outline-none"
+                          className="w-full text-center text-3xl font-mono bg-transparent border-none outline-none text-blue-800"
                           placeholder="Kod girin..."
                         />
+                        <div className="text-center mt-2 text-sm text-gray-500">
+                          {manualCode.length > 0 ? `${manualCode.length} karakter` : 'Kod bekleniyor...'}
+                        </div>
                       </div>
                       
                       {/* Sayısal Tuş Takımı */}
-                      <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                      <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                           <Button
                             key={num}
                             variant="outline"
                             size="lg"
                             onClick={() => handleKeyPress(num.toString())}
-                            className="h-12 text-lg font-mono"
+                            className="h-16 text-xl font-mono bg-white hover:bg-gray-50 border-2 hover:border-blue-300 transition-all duration-200"
                           >
                             {num}
                           </Button>
@@ -428,7 +457,7 @@ const Kiosk: React.FC<KioskProps> = ({
                           variant="outline"
                           size="lg"
                           onClick={() => handleKeyPress('backspace')}
-                          className="h-12"
+                          className="h-16 text-xl bg-red-50 hover:bg-red-100 border-red-200 hover:border-red-300 text-red-600 transition-all duration-200"
                         >
                           ←
                         </Button>
@@ -436,15 +465,15 @@ const Kiosk: React.FC<KioskProps> = ({
                           variant="outline"
                           size="lg"
                           onClick={() => handleKeyPress('0')}
-                          className="h-12 text-lg font-mono"
+                          className="h-16 text-xl font-mono bg-white hover:bg-gray-50 border-2 hover:border-blue-300 transition-all duration-200"
                         >
                           0
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="success"
                           size="lg"
                           onClick={() => handleKeyPress('enter')}
-                          className="h-12 bg-green-600 text-white hover:bg-green-700"
+                          className="h-16 text-xl font-semibold"
                         >
                           ✓
                         </Button>
@@ -501,7 +530,7 @@ const Kiosk: React.FC<KioskProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Card className="border-green-200 bg-green-50">
+                  <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-green-800">
                         {getPunchIcon(lastPunch.type)}
