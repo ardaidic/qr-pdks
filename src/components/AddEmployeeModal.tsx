@@ -40,10 +40,18 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmpl
     try {
       setLoading(true);
       
-      const response = await apiService.createEmployee({
+      console.log('Form data:', formData);
+      
+      const employeeData = {
         ...formData,
         status: 'active'
-      });
+      };
+      
+      console.log('Sending to API:', employeeData);
+      
+      const response = await apiService.createEmployee(employeeData);
+      
+      console.log('API response:', response);
 
       if (response.success) {
         toast({

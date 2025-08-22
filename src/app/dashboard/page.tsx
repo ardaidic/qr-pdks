@@ -35,6 +35,12 @@ export default function Dashboard() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    code: '',
+    department: '',
+    position: ''
+  });
   const { toast } = useToast();
 
   // Verileri yükle
@@ -97,6 +103,59 @@ export default function Dashboard() {
     p.timestamp.startsWith(selectedDate)
   );
 
+  // Yeni personel ekleme
+  const handleAddEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newEmployee.name || !newEmployee.code) {
+      toast({
+        title: "Hata",
+        description: "Ad Soyad ve Personel Kodu zorunludur",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await apiService.createEmployee({
+        ...newEmployee,
+        status: 'active',
+        avatar: ''
+      });
+
+      if (response.success) {
+        toast({
+          title: "Başarılı",
+          description: "Personel başarıyla eklendi",
+          variant: "success",
+        });
+        
+        setNewEmployee({
+          name: '',
+          code: '',
+          department: '',
+          position: ''
+        });
+        
+        setShowAddModal(false);
+        loadData();
+      } else {
+        toast({
+          title: "Hata",
+          description: response.error || "Personel eklenirken hata oluştu",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding employee:', error);
+      toast({
+        title: "Hata",
+        description: "Personel eklenirken hata oluştu",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       <div className="max-w-7xl mx-auto p-6">
@@ -120,7 +179,14 @@ export default function Dashboard() {
                 <QrCode className="w-4 h-4 mr-2" />
                 QR Oluştur
               </Button>
-              <Button variant="success" onClick={() => setShowAddModal(true)} className="shadow-lg">
+              <Button 
+                variant="success" 
+                onClick={() => {
+                  console.log('Yeni Personel butonuna tıklandı');
+                  setShowAddModal(true);
+                }} 
+                className="shadow-lg"
+              >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Yeni Personel
               </Button>
@@ -367,11 +433,74 @@ export default function Dashboard() {
       </div>
 
       {/* Add Employee Modal */}
-      <AddEmployeeModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSuccess={loadData}
-      />
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h2 className="text-xl font-semibold mb-4">Yeni Personel Ekle</h2>
+            <form onSubmit={handleAddEmployee} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Ad Soyad</label>
+                <input 
+                  type="text" 
+                  value={newEmployee.name}
+                  onChange={(e) => setNewEmployee(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Ad Soyad girin"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Personel Kodu</label>
+                <input 
+                  type="text" 
+                  value={newEmployee.code}
+                  onChange={(e) => setNewEmployee(prev => ({ ...prev, code: e.target.value }))}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="EMP001"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Departman</label>
+                <input 
+                  type="text" 
+                  value={newEmployee.department}
+                  onChange={(e) => setNewEmployee(prev => ({ ...prev, department: e.target.value }))}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Departman"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Pozisyon</label>
+                <input 
+                  type="text" 
+                  value={newEmployee.position}
+                  onChange={(e) => setNewEmployee(prev => ({ ...prev, position: e.target.value }))}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Pozisyon"
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  İptal
+                </Button>
+                <Button 
+                  type="submit"
+                  variant="success"
+                  className="flex-1"
+                >
+                  Ekle
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Edit Employee Modal */}
       <EditEmployeeModal
