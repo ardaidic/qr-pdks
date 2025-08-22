@@ -3,10 +3,10 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/ardaidic/qr-pdks)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.0-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-Cloud-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer-Motion-0055FF?style=flat-square&logo=framer)](https://www.framer.com/motion/)
 
-Bulut tabanlı, Avrupa veri merkezlerinde çalışan, QR kodlu mesai ve mola takip sistemi. Sabit tablet kiosklarından giriş/çıkış; çalışan portalında yalnızca kişinin kendi verileri; yönetici panelinde tüm personel görünümü ve gecikme vurguları.
+Modern, QR kod tabanlı personel devam kontrol sistemi. Güzel ve kullanıcı dostu arayüz ile tablet kiosklarından giriş/çıkış; çalışan portalında yalnızca kişinin kendi verileri; yönetici panelinde tüm personel görünümü ve gecikme vurguları.
 
 ## 🚀 Özellikler
 
@@ -15,22 +15,22 @@ Bulut tabanlı, Avrupa veri merkezlerinde çalışan, QR kodlu mesai ve mola tak
 - **Gerçek Zamanlı Takip**: Anlık personel durumu ve gecikme bildirimleri
 - **Çoklu Rol Sistemi**: Çalışan, Yönetici, Süper Yönetici rolleri
 - **Offline Desteği**: İnternet bağlantısı olmadığında kuyruk sistemi
-- **GDPR Uyumlu**: Avrupa veri merkezlerinde barındırma
+- **Modern UI/UX**: Framer Motion animasyonları ve modern tasarım
 - **Responsive Tasarım**: Tablet ve mobil uyumlu arayüz
+- **Toast Bildirimleri**: Kullanıcı dostu bildirim sistemi
 
 ## 🛠️ Teknoloji Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript
-- **UI**: Tailwind CSS, shadcn/ui, Lucide Icons
-- **Backend**: Firebase (Firestore, Functions, Hosting)
+- **UI**: Tailwind CSS, Radix UI, Framer Motion, Lucide Icons
+- **Backend**: JSON Server (basit API)
 - **QR Kod**: html5-qrcode
-- **Barındırma**: Firebase Hosting (EU Region)
+- **Barındırma**: Vercel/Netlify (statik hosting)
 
 ## 📋 Gereksinimler
 
 - Node.js 18+ 
 - npm veya yarn
-- Firebase projesi (timetrack-qr)
 
 ## 🚀 Hızlı Başlangıç
 
@@ -45,27 +45,24 @@ cd qr-pdks
 npm install
 ```
 
-### 3. Firebase Konfigürasyonu
-Detaylı kurulum için [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) dosyasını takip edin.
-
-Kısa özet:
-1. Firebase Console'da "TimeTrack QR" projesini seçin
-2. Firestore Database, Authentication, Storage ve Functions servislerini etkinleştirin
-3. `.env.local` dosyasını Firebase bilgileriyle güncelleyin
-
-### 4. Geliştirme Sunucusunu Başlatın
+### 3. Geliştirme Sunucusunu Başlatın
 ```bash
-npm run dev
+# Hem API hem de Next.js sunucusunu başlatır
+npm run dev:full
+
+# Veya ayrı ayrı:
+npm run api    # JSON Server (port 3001)
+npm run dev    # Next.js (port 3000)
 ```
 
-### 5. Tarayıcıda Açın
+### 4. Tarayıcıda Açın
 ```
 http://localhost:3000
 ```
 
-### 6. Firebase Bağlantısını Test Edin
+### 5. API Test Edin
 ```
-http://localhost:3000/test-firebase
+http://localhost:3001/employees
 ```
 
 ## 📱 Kullanım
@@ -75,6 +72,7 @@ http://localhost:3000/test-firebase
 - Giriş/çıkış işlemleri
 - Mola yönetimi
 - Gerçek zamanlı durum gösterimi
+- Modern animasyonlar
 
 ### Çalışan Portalı
 - Kişisel veri görüntüleme
@@ -92,27 +90,26 @@ http://localhost:3000/test-firebase
 qr-pdks/
 ├── src/
 │   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API Routes
-│   │   │   ├── punch/         # Punch işlemleri
-│   │   │   └── employees/     # Çalışan bilgileri
-│   │   ├── test-firebase/     # Firebase test sayfası
 │   │   ├── globals.css        # Global stiller
 │   │   ├── layout.tsx         # Ana layout
 │   │   └── page.tsx           # Kiosk ana sayfa
 │   ├── components/            # React bileşenleri
 │   │   ├── ui/               # Temel UI bileşenleri
+│   │   │   ├── button.tsx    # Modern button bileşeni
+│   │   │   ├── card.tsx      # Card bileşeni
+│   │   │   ├── avatar.tsx    # Avatar bileşeni
+│   │   │   ├── toast.tsx     # Toast bileşeni
+│   │   │   └── toaster.tsx   # Toaster bileşeni
 │   │   ├── Kiosk.tsx         # Kiosk ana bileşeni
 │   │   └── QRScanner.tsx     # QR kod okuyucu
+│   ├── hooks/                # Custom hooks
+│   │   └── use-toast.ts      # Toast hook'u
 │   ├── lib/                  # Yardımcı kütüphaneler
-│   │   ├── firebase.ts       # Firebase konfigürasyonu
-│   │   └── utils.ts          # Yardımcı fonksiyonlar
-│   └── types/                # TypeScript tip tanımları
-├── functions/                # Firebase Functions
-├── firebase.json            # Firebase konfigürasyonu
-├── firestore.rules          # Güvenlik kuralları
-├── firestore.indexes.json   # Firestore indeksleri
-├── storage.rules            # Storage güvenlik kuralları
-├── FIREBASE_SETUP.md        # Firebase kurulum rehberi
+│   │   ├── api.ts           # API servisi
+│   │   └── utils.ts         # Yardımcı fonksiyonlar
+│   └── types/               # TypeScript tip tanımları
+├── db.json                  # JSON Server veri dosyası
+├── package.json             # Proje bağımlılıkları
 └── README.md               # Proje dokümantasyonu
 ```
 
@@ -124,8 +121,13 @@ qr-pdks/
 3. Test edin
 4. Pull request oluşturun
 
-### Firebase Kurulumu
-Detaylı adımlar için [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) dosyasını inceleyin.
+### API Endpoints
+- `GET /employees` - Tüm çalışanları listele
+- `GET /employees?code=EMP001` - Çalışan koduna göre ara
+- `POST /punches` - Yeni punch oluştur
+- `GET /punches` - Punch'ları listele
+- `GET /sessions` - Oturumları listele
+- `POST /sessions` - Yeni oturum oluştur
 
 ## 📊 Veri Modeli
 
@@ -134,29 +136,34 @@ Detaylı adımlar için [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) dosyasını inc
 - `punches`: Giriş/çıkış kayıtları
 - `sessions`: Günlük oturum bilgileri
 - `devices`: Kiosk cihazları
-- `locations`: Lokasyon bilgileri
 - `challenges`: QR doğrulama challenge'ları
 
 ## 🔒 Güvenlik
 
-- QR kod HMAC doğrulama
+- QR kod doğrulama
 - Cihaz kimlik doğrulama
 - Role-based access control (RBAC)
-- GDPR uyumlu veri saklama
 - Audit logging
 
 ## 🚀 Deployment
-
-### Firebase Hosting
-```bash
-npm run build
-npx firebase-tools deploy --only hosting
-```
 
 ### Vercel
 ```bash
 npm run build
 vercel --prod
+```
+
+### Netlify
+```bash
+npm run build
+netlify deploy --prod
+```
+
+### JSON Server (Production)
+```bash
+# JSON Server'ı production'da çalıştırmak için:
+npm install -g json-server
+json-server --watch db.json --port 3001 --host 0.0.0.0
 ```
 
 ## 📈 Performans
@@ -165,6 +172,16 @@ vercel --prod
 - API yanıt süresi: <500ms
 - Offline kuyruk: 100+ punch
 - Eşzamanlı kullanıcı: 1000+
+
+## 🎨 UI/UX Özellikleri
+
+- **Modern Tasarım**: Gradient arka planlar ve modern renk paleti
+- **Animasyonlar**: Framer Motion ile smooth animasyonlar
+- **Responsive**: Tüm cihazlarda mükemmel görünüm
+- **Toast Bildirimleri**: Kullanıcı dostu bildirim sistemi
+- **Loading States**: İşlem durumu göstergeleri
+- **Error Handling**: Hata durumları için güzel UI
+- **Accessibility**: Erişilebilirlik standartlarına uygun
 
 ## 🤝 Katkıda Bulunma
 
@@ -208,6 +225,7 @@ git push -u origin main
 ## 🙏 Teşekkürler
 
 - [Next.js](https://nextjs.org/) - React framework
-- [Firebase](https://firebase.google.com/) - Backend servisleri
 - [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [shadcn/ui](https://ui.shadcn.com/) - UI bileşenleri
+- [Radix UI](https://www.radix-ui.com/) - UI bileşenleri
+- [Framer Motion](https://www.framer.com/motion/) - Animasyon kütüphanesi
+- [Lucide Icons](https://lucide.dev/) - İkon kütüphanesi

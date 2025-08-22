@@ -26,7 +26,7 @@ export function QRScanner({ onScan, className }: QRScannerProps) {
         } else {
           setHasPermission(false);
         }
-      } catch (_error) {
+      } catch {
         setHasPermission(false);
       }
     };

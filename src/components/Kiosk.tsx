@@ -1,324 +1,410 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { QRScanner } from './QRScanner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Clock, 
-  User, 
   LogIn, 
   LogOut, 
   Coffee, 
   CheckCircle, 
-  XCircle,
-  Wifi,
-  WifiOff
+  XCircle, 
+  Loader2,
+  QrCode,
+  Smartphone,
+  Building2,
+  Calendar
 } from 'lucide-react';
-import { formatTime, formatMinutes } from '@/lib/utils';
-import type { PunchType, PunchResponse } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { QRScanner } from './QRScanner';
+import { apiService, type Employee, type Punch } from '@/lib/api';
 
 interface KioskProps {
-  deviceId: string;
-  locationName: string;
-  deviceName: string;
+  deviceId?: string;
+  location?: string;
 }
 
-interface CurrentEmployee {
-  id: string;
-  name: string;
-  code: string;
-  currentStatus: 'IN' | 'OUT' | 'BREAK';
-  lastPunch?: Date;
-  totalMinutes?: number;
-}
-
-export function Kiosk({ deviceId, locationName, deviceName }: KioskProps) {
-  const [currentEmployee, setCurrentEmployee] = useState<CurrentEmployee | null>(null);
-  const [isOnline, setIsOnline] = useState(true);
-  const [lastSync] = useState<Date>(new Date());
+const Kiosk: React.FC<KioskProps> = ({ 
+  deviceId = 'KIOSK001', 
+  location = 'Ana Giriş' 
+}) => {
+  const [isScanning, setIsScanning] = useState(false);
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [lastPunch, setLastPunch] = useState<Punch | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const { toast } = useToast();
 
-  // Online/offline durumu kontrolü
+  // Gerçek zamanlı saat güncellemesi
   useEffect(() => {
-    const checkOnlineStatus = () => {
-      setIsOnline(navigator.onLine);
-    };
-
-    window.addEventListener('online', checkOnlineStatus);
-    window.addEventListener('offline', checkOnlineStatus);
-
-    return () => {
-      window.removeEventListener('online', checkOnlineStatus);
-      window.removeEventListener('offline', checkOnlineStatus);
-    };
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  // QR kod okunduğunda
   const handleQRScan = async (qrData: string) => {
+    setIsScanning(false);
     setIsProcessing(true);
-    setMessage(null);
 
     try {
-      // QR verisini parse et
-      const match = qrData.match(/^emp:([^:]+):v1$/);
-      if (!match) {
-        throw new Error('Geçersiz QR kod formatı');
-      }
-
-      const employeeCode = match[1];
+      // QR kodundan çalışan kodunu çıkar
+      const employeeCode = qrData.split(':')[1] || qrData;
       
-      // Çalışan bilgilerini al
-      const employee = await getEmployeeByCode(employeeCode);
-      if (!employee) {
-        throw new Error('Çalışan bulunamadı');
+      // Çalışan bilgilerini getir
+      const employeeResponse = await apiService.getEmployeeByCode(employeeCode);
+      
+      if (!employeeResponse.success || !employeeResponse.data) {
+        toast({
+          title: "Hata",
+          description: "Çalışan bulunamadı veya QR kod geçersiz",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Mevcut durumu kontrol et ve uygun punch türünü belirle
+      const employee = employeeResponse.data;
+      setCurrentEmployee(employee);
+
+      // Punch işlemini gerçekleştir
       const punchType = await determinePunchType(employee.id);
       
-      // Punch işlemini gerçekleştir
-      const response = await performPunch({
+      const punchData = {
+        employee_id: employee.id,
+        employee_code: employee.code,
+        employee_name: employee.name,
+        type: punchType,
+        timestamp: new Date().toISOString(),
+        location: location,
         device_id: deviceId,
-        challenge: generateChallenge(),
-        employee_code: employeeCode,
-        action: punchType
-      });
+      };
 
-      if (response.status === 'success') {
-        setCurrentEmployee({
-          id: employee.id,
-          name: `${employee.first_name} ${employee.last_name}`,
-          code: employee.code,
-          currentStatus: response.session_state?.current_status || 'OUT',
-          lastPunch: new Date(),
-          totalMinutes: response.session_state?.total_minutes
-        });
-
-        setMessage({
-          type: 'success',
-          text: getSuccessMessage(punchType, response.highlights)
-        });
-
-        // Başarı sesi çal
-        playSuccessSound();
-      } else {
-        throw new Error(response.message || 'Punch işlemi başarısız');
-      }
-
-    } catch (error) {
-      console.error('Punch error:', error);
-      setMessage({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Bilinmeyen hata'
-      });
+      const punchResponse = await apiService.createPunch(punchData);
       
-      // Hata sesi çal
-      playErrorSound();
+      if (punchResponse.success && punchResponse.data) {
+        setLastPunch(punchResponse.data);
+        
+        const successMessage = getSuccessMessage(punchType, employee.name);
+        toast({
+          title: "Başarılı",
+          description: successMessage,
+          variant: "success",
+        });
+
+        // 3 saniye sonra çalışan bilgisini temizle
+        setTimeout(() => {
+          setCurrentEmployee(null);
+          setLastPunch(null);
+        }, 3000);
+      } else {
+        toast({
+          title: "Hata",
+          description: "Punch işlemi başarısız",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('QR scan error:', error);
+      toast({
+        title: "Hata",
+        description: "İşlem sırasında bir hata oluştu",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
-      
-      // Mesajı 3 saniye sonra temizle
-      setTimeout(() => setMessage(null), 3000);
     }
   };
 
-  // Yardımcı fonksiyonlar
-  const getEmployeeByCode = async (code: string) => {
-    try {
-      const response = await fetch(`/api/employees/${code}`);
-      const result = await response.json();
+  const determinePunchType = async (employeeId: string): Promise<Punch['type']> => {
+    const today = new Date().toISOString().split('T')[0];
+    const sessionResponse = await apiService.getSession(employeeId, today);
+    
+    if (sessionResponse.success && sessionResponse.data) {
+      const session = sessionResponse.data;
       
-      if (!result.success) {
-        throw new Error(result.error || 'Çalışan bulunamadı');
+      if (!session.check_in) return 'CHECK_IN';
+      if (session.check_in && !session.check_out) {
+        if (session.status === 'BREAK') return 'BREAK_END';
+        return 'BREAK_START';
       }
-
-      return result.data;
-    } catch (error) {
-      console.error('Employee API error:', error);
-      throw error;
+      if (session.check_in && session.check_out) return 'CHECK_OUT';
     }
-  };
-
-  const determinePunchType = async (_employeeId: string): Promise<PunchType> => {
-    // TODO: Mevcut oturum durumunu kontrol et
+    
     return 'CHECK_IN';
   };
 
-  const performPunch = async (request: Record<string, unknown>): Promise<PunchResponse> => {
-    try {
-      const response = await fetch('/api/punch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      const result = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Punch işlemi başarısız');
-      }
-
-      return result.data;
-    } catch (error) {
-      console.error('Punch API error:', error);
-      throw error;
-    }
-  };
-
-  const generateChallenge = () => {
-    return `challenge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  };
-
-  const getSuccessMessage = (punchType: PunchType, highlights?: Record<string, unknown>) => {
+  const getSuccessMessage = (punchType: Punch['type'], employeeName: string): string => {
     switch (punchType) {
       case 'CHECK_IN':
-        return highlights?.is_late 
-          ? `Giriş kaydedildi (${highlights.late_minutes} dk geç)`
-          : 'Giriş kaydedildi';
+        return `${employeeName} başarıyla giriş yaptı`;
       case 'CHECK_OUT':
-        return 'Çıkış kaydedildi';
+        return `${employeeName} başarıyla çıkış yaptı`;
       case 'BREAK_START':
-        return 'Mola başlatıldı';
+        return `${employeeName} mola başlattı`;
       case 'BREAK_END':
-        return 'Mola sonlandırıldı';
+        return `${employeeName} moladan döndü`;
       default:
         return 'İşlem başarılı';
     }
   };
 
-  const playSuccessSound = () => {
-    // TODO: Başarı sesi çal
-    console.log('Success sound');
+  const getPunchIcon = (punchType: Punch['type']) => {
+    switch (punchType) {
+      case 'CHECK_IN':
+        return <LogIn className="w-6 h-6 text-green-600" />;
+      case 'CHECK_OUT':
+        return <LogOut className="w-6 h-6 text-red-600" />;
+      case 'BREAK_START':
+        return <Coffee className="w-6 h-6 text-yellow-600" />;
+      case 'BREAK_END':
+        return <Coffee className="w-6 h-6 text-blue-600" />;
+      default:
+        return <CheckCircle className="w-6 h-6 text-green-600" />;
+    }
   };
 
-  const playErrorSound = () => {
-    // TODO: Hata sesi çal
-    console.log('Error sound');
+  const getPunchTypeText = (punchType: Punch['type']) => {
+    switch (punchType) {
+      case 'CHECK_IN':
+        return 'Giriş';
+      case 'CHECK_OUT':
+        return 'Çıkış';
+      case 'BREAK_START':
+        return 'Mola Başlangıcı';
+      case 'BREAK_END':
+        return 'Mola Bitişi';
+      default:
+        return 'Punch';
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">QR PDKS Kiosk</h1>
-          <p className="text-gray-400">{locationName} - {deviceName}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            {isOnline ? (
-              <Wifi className="w-5 h-5 text-green-400" />
-            ) : (
-              <WifiOff className="w-5 h-5 text-red-400" />
-            )}
-            <span className="text-sm">
-              {isOnline ? 'Çevrimiçi' : 'Çevrimdışı'}
-            </span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Building2 className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-800">QR PDKS</h1>
           </div>
-          <div className="text-sm text-gray-400">
-            Son senkron: {formatTime(lastSync)}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* QR Scanner */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <p className="text-gray-600 text-lg">Personel Devam Kontrol Sistemi</p>
+          
+          {/* Saat ve Tarih */}
+          <div className="mt-4 flex items-center justify-center gap-4 text-gray-700">
+            <div className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              QR Kod Okut
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <QRScanner 
-              onScan={handleQRScan}
-              className="w-full"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Current Status */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Mevcut Durum
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {currentEmployee ? (
-              <div className="space-y-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold mb-2">{currentEmployee.name}</div>
-                  <div className="text-gray-400">{currentEmployee.code}</div>
-                </div>
-                
-                <div className="flex justify-center">
-                  <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                    currentEmployee.currentStatus === 'IN' 
-                      ? 'bg-green-600 text-white' 
-                      : currentEmployee.currentStatus === 'BREAK'
-                      ? 'bg-yellow-600 text-white'
-                      : 'bg-gray-600 text-white'
-                  }`}>
-                    {currentEmployee.currentStatus === 'IN' && <LogIn className="w-4 h-4 inline mr-2" />}
-                    {currentEmployee.currentStatus === 'BREAK' && <Coffee className="w-4 h-4 inline mr-2" />}
-                    {currentEmployee.currentStatus === 'OUT' && <LogOut className="w-4 h-4 inline mr-2" />}
-                    {currentEmployee.currentStatus === 'IN' ? 'İçeride' : 
-                     currentEmployee.currentStatus === 'BREAK' ? 'Molada' : 'Dışarıda'}
-                  </div>
-                </div>
-
-                {currentEmployee.lastPunch && (
-                  <div className="text-center text-sm text-gray-400">
-                    Son işlem: {formatTime(currentEmployee.lastPunch)}
-                  </div>
-                )}
-
-                {currentEmployee.totalMinutes !== undefined && (
-                  <div className="text-center text-sm text-gray-400">
-                    Bugünkü toplam: {formatMinutes(currentEmployee.totalMinutes)}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center text-gray-400 py-8">
-                Henüz QR kod okutulmadı
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Message Display */}
-      {message && (
-        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
-          message.type === 'success' 
-            ? 'bg-green-600 text-white' 
-            : 'bg-red-600 text-white'
-        }`}>
-          {message.type === 'success' ? (
-            <CheckCircle className="w-5 h-5" />
-          ) : (
-            <XCircle className="w-5 h-5" />
-          )}
-          {message.text}
-        </div>
-      )}
-
-      {/* Processing Overlay */}
-      {isProcessing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-white">İşlem yapılıyor...</p>
+              <span className="text-xl font-mono">
+                {currentTime.toLocaleTimeString('tr-TR')}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              <span className="text-lg">
+                {currentTime.toLocaleDateString('tr-TR', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+            </div>
           </div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Sol Panel - QR Scanner */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="w-6 h-6 text-blue-600" />
+                  QR Kod Tarayıcı
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!isScanning ? (
+                  <div className="text-center space-y-4">
+                    <div className="bg-blue-50 rounded-lg p-8 border-2 border-dashed border-blue-200">
+                      <Smartphone className="w-16 h-16 text-blue-400 mx-auto mb-4" />
+                      <p className="text-gray-600 mb-4">
+                        QR kodunuzu tarayıcıya yaklaştırın
+                      </p>
+                      <Button 
+                        onClick={() => setIsScanning(true)}
+                        variant="kiosk"
+                        size="xl"
+                        className="w-full"
+                      >
+                        <QrCode className="w-6 h-6 mr-2" />
+                        QR Kod Tara
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <QRScanner onScan={handleQRScan} />
+                    <Button 
+                      onClick={() => setIsScanning(false)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Taramayı Durdur
+                    </Button>
+                  </div>
+                )}
+
+                {/* İşlem Durumu */}
+                {isProcessing && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center gap-2 text-blue-600"
+                  >
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>İşlem yapılıyor...</span>
+                  </motion.div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Sağ Panel - Son İşlemler */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-6"
+          >
+            {/* Cihaz Bilgileri */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-gray-600" />
+                  Cihaz Bilgileri
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Cihaz ID:</span>
+                    <span className="font-mono">{deviceId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Konum:</span>
+                    <span>{location}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Durum:</span>
+                    <span className="text-green-600 font-medium">Aktif</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Son İşlem */}
+            <AnimatePresence>
+              {currentEmployee && lastPunch && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="border-green-200 bg-green-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-green-800">
+                        {getPunchIcon(lastPunch.type)}
+                        Son İşlem
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="w-16 h-16">
+                          <AvatarImage src={currentEmployee.avatar} />
+                          <AvatarFallback>
+                            {currentEmployee.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold text-lg">{currentEmployee.name}</h3>
+                          <p className="text-gray-600">{currentEmployee.department}</p>
+                          <p className="text-sm text-gray-500">{currentEmployee.position}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">İşlem Türü:</span>
+                          <span className="font-medium">{getPunchTypeText(lastPunch.type)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Saat:</span>
+                          <span className="font-mono">
+                            {new Date(lastPunch.timestamp).toLocaleTimeString('tr-TR')}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Konum:</span>
+                          <span>{lastPunch.location}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Talimatlar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Nasıl Kullanılır?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm text-gray-600">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                      1
+                    </div>
+                    <p>QR kodunuzu cihaza yaklaştırın</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                      2
+                    </div>
+                    <p>Kamera QR kodu otomatik olarak tarayacak</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                      3
+                    </div>
+                    <p>İşlem türü otomatik olarak belirlenecek</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                      4
+                    </div>
+                    <p>Başarılı işlem mesajını bekleyin</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+export default Kiosk;

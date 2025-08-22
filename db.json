@@ -1,0 +1,117 @@
+{
+  "employees": [
+    {
+      "id": "1",
+      "code": "EMP001",
+      "name": "Ahmet Yılmaz",
+      "department": "Yazılım Geliştirme",
+      "position": "Senior Developer",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      "status": "active",
+      "created_at": "2024-01-15T08:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "code": "EMP002",
+      "name": "Ayşe Demir",
+      "department": "İnsan Kaynakları",
+      "position": "HR Manager",
+      "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "status": "active",
+      "created_at": "2024-01-16T09:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "code": "EMP003",
+      "name": "Mehmet Kaya",
+      "department": "Satış",
+      "position": "Sales Representative",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      "status": "active",
+      "created_at": "2024-01-17T10:00:00.000Z"
+    },
+    {
+      "id": "4",
+      "code": "EMP004",
+      "name": "Fatma Özkan",
+      "department": "Muhasebe",
+      "position": "Accountant",
+      "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      "status": "active",
+      "created_at": "2024-01-18T11:00:00.000Z"
+    },
+    {
+      "id": "5",
+      "code": "EMP005",
+      "name": "Ali Çelik",
+      "department": "Pazarlama",
+      "position": "Marketing Specialist",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+      "status": "active",
+      "created_at": "2024-01-19T12:00:00.000Z"
+    }
+  ],
+  "punches": [
+    {
+      "id": "1",
+      "employee_id": "1",
+      "employee_code": "EMP001",
+      "employee_name": "Ahmet Yılmaz",
+      "type": "CHECK_IN",
+      "timestamp": "2024-08-20T08:00:00.000Z",
+      "location": "Ana Giriş",
+      "device_id": "KIOSK001"
+    },
+    {
+      "id": "2",
+      "employee_id": "2",
+      "employee_code": "EMP002",
+      "employee_name": "Ayşe Demir",
+      "type": "CHECK_IN",
+      "timestamp": "2024-08-20T08:15:00.000Z",
+      "location": "Ana Giriş",
+      "device_id": "KIOSK001"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "1",
+      "employee_id": "1",
+      "date": "2024-08-20",
+      "check_in": "2024-08-20T08:00:00.000Z",
+      "status": "IN"
+    },
+    {
+      "id": "2",
+      "employee_id": "2",
+      "date": "2024-08-20",
+      "check_in": "2024-08-20T08:15:00.000Z",
+      "status": "IN"
+    }
+  ],
+  "devices": [
+    {
+      "id": "KIOSK001",
+      "name": "Ana Giriş Kiosk",
+      "location": "Ana Giriş",
+      "status": "active",
+      "last_activity": "2024-08-20T08:15:00.000Z"
+    },
+    {
+      "id": "KIOSK002",
+      "name": "Arka Giriş Kiosk",
+      "location": "Arka Giriş",
+      "status": "active",
+      "last_activity": "2024-08-20T08:10:00.000Z"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "1",
+      "employee_code": "EMP001",
+      "challenge": "abc123def456",
+      "expires_at": "2024-08-20T08:05:00.000Z",
+      "used": false
+    }
+  ]
+}
